@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fender Design Platform Based on Vessel Berthing Energy</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --text: #e8eefc;
+            --muted: #9fb0d0;
+            --line: rgba(255, 255, 255, .10);
+            --panel: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .02));
+            --active-border: rgba(61, 220, 151, .8);
+            --inactive-opacity: 0.4;
+            --highlight-glow: 0 0 25px rgba(61, 220, 151, 0.15);
+            --tab-active-bg: rgba(61, 220, 151, 0.15);
+            --tab-active-border: #3ddc97;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", Arial;
+            background: radial-gradient(1000px 500px at 20% 0%, rgba(61, 220, 151, .10), transparent 60%),
+                radial-gradient(900px 450px at 80% 10%, rgba(255, 204, 102, .10), transparent 60%),
+                var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--line);
+            text-align: center;
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)), url('Header2.png');
+            background-size: cover;
+            background-position: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 48px;
+            color: #fff;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Tabs Navigation --- */
+        .tab-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: -30px;
+            /* Overlap header slightly or just below */
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .tab-btn {
+            background: rgba(11, 16, 32, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--line);
+            color: var(--muted);
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .tab-btn.active {
+            color: #fff;
+            border-color: var(--tab-active-border);
+            background: var(--tab-active-bg);
+            box-shadow: 0 0 20px rgba(61, 220, 151, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        /* --- Layout Containers --- */
+        .tab-content {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            animation: fadeInPage 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeInPage {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Existing Layout for Tab 1 --- */
+        .wrap-calc {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, .35);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .card.active {
+            border-color: var(--active-border);
+            box-shadow: var(--highlight-glow);
+            opacity: 1;
+            transform: translateY(-2px);
+        }
+
+        .card.inactive {
+            opacity: var(--inactive-opacity);
+            pointer-events: none;
+            filter: grayscale(0.6);
+        }
+
+        h2 {
+            margin: 0 0 15px;
+            font-size: 16px;
+            color: #dbe7ff;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 8px;
+        }
+
+        /* Input Row Styles */
+        .inputRow {
+            display: grid;
+            grid-template-columns: 1.5fr 60px 1.5fr;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, .18);
+        }
+
+        .inputRow label {
+            font-size: 13px;
+            color: #cfe0ff;
+            line-height: 1.35;
+        }
+
+        .symWrap {
+            display: flex;
+            justify-content: center;
+        }
+
+        .sym {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 100%;
+            padding: 5px 0;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, .03);
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--muted);
+            height: 30px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, .22);
+            color: var(--text);
+            outline: none;
+            font-size: 13px;
+            height: 36px;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: rgba(61, 220, 151, .55);
+            box-shadow: 0 0 0 3px rgba(61, 220, 151, .12);
+        }
+
+        input[readonly] {
+            background: rgba(255, 255, 255, .05);
+            color: var(--muted);
+            border-color: rgba(255, 255, 255, .05);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text);
+            flex-direction: row;
+            /* Force row layout */
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            /* Prevent wrapping */
+        }
+
+        .flex-row-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .flex-row-container .inputRow {
+            flex: 1;
+            min-width: 0;
+            /* Allow shrinking */
+            display: flex;
+            /* Override grid */
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+            grid-template-columns: none;
+            /* Reset grid */
+            white-space: nowrap;
+        }
+
+        .flex-row-container label {
+            white-space: nowrap;
+        }
+
+        .btnSearch {
+            background: linear-gradient(135deg, #3ddc97, #34d399);
+            color: #0b1020;
+            font-weight: bold;
+            font-size: 15px;
+            padding: 12px 30px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(61, 220, 151, 0.3);
+            white-space: nowrap;
+        }
+
+        .btnSearch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(61, 220, 151, 0.4);
+        }
+
+        .grid-2-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Result Box */
+        .result-box {
+            background: rgba(61, 220, 151, .05);
+            border: 1px solid rgba(61, 220, 151, .2);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            transition: all 0.4s ease;
+        }
+
+        .result-box.highlighted {
+            border-color: #3ddc97;
+            box-shadow: 0 0 25px rgba(61, 220, 151, 0.3);
+            background: rgba(61, 220, 151, 0.1);
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .final-energy {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff6b6b;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+        }
+
+        .highlight-text {
+            color: #4cd137;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .btnHighlight {
+            border-color: rgba(61, 220, 151, 1);
+            background: linear-gradient(135deg, rgba(61, 220, 151, 0.4), rgba(61, 220, 151, 0.1));
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 15px 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(61, 220, 151, 1);
+            box-shadow: 0 0 15px rgba(61, 220, 151, 0.3);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            letter-spacing: 1px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .btnHighlight:hover {
+            background: linear-gradient(135deg, rgba(61, 220, 151, 0.6), rgba(61, 220, 151, 0.2));
+            box-shadow: 0 0 25px rgba(61, 220, 151, 0.5);
+            transform: scale(1.05);
+        }
+
+        .btn-ready {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+            transform: scale(1.05);
+            animation: pulseBtn 1.5s infinite;
+            border-color: #34d399 !important;
+        }
+
+        @keyframes pulseBtn {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
+        }
+
+        .calculator-prompt {
+            text-align: center;
+            color: #61df97;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 14px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Right Panel */
+        #rightPanelSticky {
+            position: sticky;
+            top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .ref-panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 15px;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, .35);
+        }
+
+        .ref-panel h3 {
+            margin-top: 0;
+            font-size: 14px;
+            color: #dbe7ff;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid var(--line);
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background: rgba(255, 255, 255, .04);
+            color: #dbe7ff;
+        }
+
+        td {
+            color: var(--muted);
+        }
+
+        caption {
+            font-weight: bold;
+            margin-bottom: 6px;
+            text-align: left;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        /* --- Fender Selection Table Styles --- */
+        #fenderResultTable th {
+            background: rgba(61, 220, 151, 0.1);
+            color: #4cd137;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #fenderResultTable tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Reference link style */
+        .ref-link {
+            font-size: 10px;
+            color: var(--muted);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+            transition: color 0.2s;
+            text-decoration: none;
+        }
+
+        .ref-link:hover {
+            color: #3ddc97;
+        }
+
+        .ref-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border: 1px solid currentColor;
+            border-radius: 50%;
+            font-size: 8px;
+            line-height: 1;
+        }
+
+        .highlight-row {
+            background: rgba(61, 220, 151, 0.2) !important;
+            box-shadow: inset 0 0 10px rgba(61, 220, 151, 0.2);
+        }
+
+        .highlight-row td {
+            color: #fff !important;
+            font-weight: bold;
+        }
+
+        @media (max-width: 1000px) {
+            .wrap-calc {
+                grid-template-columns: 1fr;
+            }
+
+            #rightPanelSticky {
+                position: static;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Fender Design Platform Based on Vessel Berthing Energy</h1>
+    </header>
+
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('calc')">Calculation</button>
+        <button class="tab-btn" onclick="switchTab('fender')">Fender Selection</button>
+        <button class="tab-btn" onclick="switchTab('spacing')">Calculation of Fender Spacing</button>
+    </div>
+
+    <!-- Tab 1: Calculation -->
+    <div id="tab-calc" class="tab-content active">
+        <div class="wrap-calc">
+            <!-- Left Panel Container -->
+            <div class="left-panel">
+
+                <!-- Box 1 -->
+                <div class="card active" id="step1Card">
+                    <h2>1. Design Vessel Data Input</h2>
+                    <p
+                        style="margin-top: -5px; margin-bottom: 20px; font-size: 13px; color: #9fb0d0; line-height: 1.5;">
+                        Design Vessel 관련사항을 우선 입력해 주세요.<br>
+                        상세 제원은 우측의 Reference Tables 참고
+                    </p>
+
+                    <div class="grid-2-col">
+                        <div class="inputRow">
+                            <label>DWT (Deadweight Tonnage)</label>
+                            <div class="symWrap">
+                                <div class="sym">DWT</div>
+                            </div>
+                            <div><input type="number" id="dwt" placeholder="e.g. 50000" class="step1-input"></div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>Vessel Type</label>
+                            <div class="symWrap">
+                                <div class="sym">Type</div>
+                            </div>
+                            <div>
+                                <select id="vesselType" class="step1-input">
+                                    <option value="" disabled selected>Select Type</option>
+                                    <option value="cargo">General Cargo</option>
+                                    <option value="container">Container</option>
+                                    <option value="tanker">Tanker</option>
+                                    <option value="ferry">Ferry</option>
+                                    <option value="tug">Tugs, Work Boats</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>LOA (Length Overall) [m]</label>
+                            <div class="symWrap">
+                                <div class="sym">L</div>
+                            </div>
+                            <div><input type="number" id="loa" class="step1-input"></div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>Beam (Width) [m]</label>
+                            <div class="symWrap">
+                                <div class="sym">B</div>
+                            </div>
+                            <div><input type="number" id="beam" class="step1-input"></div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>Draft [m]</label>
+                            <div class="symWrap">
+                                <div class="sym">d</div>
+                            </div>
+                            <div><input type="number" id="draft" class="step1-input"></div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>Seawater Density [t/m³]</label>
+                            <div class="symWrap">
+                                <div class="sym">ρ</div>
+                            </div>
+                            <div><input type="number" id="density" value="1.025" readonly></div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>Berthing Velocity [m/s]</label>
+                            <div class="symWrap">
+                                <div class="sym">V</div>
+                            </div>
+                            <div><input type="number" id="velocity" class="step1-input" step="0.01"></div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>Berthing Angle [deg]</label>
+                            <div class="symWrap">
+                                <div class="sym">Θ</div>
+                            </div>
+                            <div><input type="number" id="angle" class="step1-input"></div>
+                        </div>
+                    </div>
+
+                    <!-- Calculated Dimensions Section -->
+                    <h3 style="font-size: 14px; color: var(--muted); margin-bottom: 10px;">Calculated Dimensions</h3>
+                    <div class="grid-2-col">
+                        <div class="inputRow" style="background: rgba(255,255,255,0.03);">
+                            <label>Lpp (Length between Perp.)</label>
+                            <div class="symWrap">
+                                <div class="sym">Lpp</div>
+                            </div>
+                            <div><input type="number" id="lpp" readonly></div>
+                        </div>
+                        <div class="inputRow" style="background: rgba(255,255,255,0.03);">
+                            <label>Displacement Tonnage</label>
+                            <div class="symWrap">
+                                <div class="sym">DT</div>
+                            </div>
+                            <div><input type="number" id="dt" readonly></div>
+                        </div>
+                        <div class="inputRow" style="background: rgba(255,255,255,0.03);">
+                            <label>
+                                Block Coefficient<br>
+                                <span class="ref-link"
+                                    onclick="window.open('Cb.png', '_blank', 'width=800,height=600')">
+                                    Reference <span class="ref-icon">▶</span>
+                                </span>
+                            </label>
+                            <div class="symWrap">
+                                <div class="sym">Cb</div>
+                            </div>
+                            <div><input type="number" id="cb" readonly></div>
+                        </div>
+
+                        <div class="inputRow" style="background: rgba(255,255,255,0.03);">
+                            <label>Berthing Angle Coeff.</label>
+                            <div class="symWrap">
+                                <div class="sym">C<sub>&theta;</sub></div>
+                            </div>
+                            <div><input type="number" id="angle_coeff" readonly></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Box 2 -->
+                <div class="card inactive" id="step2Card">
+                    <h2>2. Berthing Conditions & Coefficients</h2>
+                    <p
+                        style="margin-top: -5px; margin-bottom: 20px; font-size: 13px; color: #9fb0d0; line-height: 1.5;">
+                        Ueda, Vasco Formula 중에서 선택 (나머지 항목은 자동계산)
+                    </p>
+
+                    <div class="grid-2-col">
+                        <div class="inputRow">
+                            <label>Cm Formula Selection</label>
+                            <div class="symWrap">
+                                <div class="sym">Method</div>
+                            </div>
+                            <div class="radio-group">
+                                <label><input type="radio" name="cm_method" value="ueda" class="step2-input">
+                                    Ueda</label>
+                                <label><input type="radio" name="cm_method" value="vasco" class="step2-input">
+                                    Vasco</label>
+                            </div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>
+                                Virtual Mass Coefficient<br>
+                                <span class="ref-link"
+                                    onclick="window.open('Cm.png', '_blank', 'width=800,height=600')">
+                                    Reference <span class="ref-icon">▶</span>
+                                </span>
+                            </label>
+                            <div class="symWrap">
+                                <div class="sym">Cm</div>
+                            </div>
+                            <div><input type="number" id="cm" readonly></div>
+                        </div>
+                    </div>
+
+                    <div class="grid-2-col">
+                        <div class="inputRow">
+                            <label>Distance from center (Long.) [m]</label>
+                            <div class="symWrap">
+                                <div class="sym">x</div>
+                            </div>
+                            <div><input type="number" id="dist_x" value="50.25" class="step2-input"></div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>Distance from center (Trans.) [m]</label>
+                            <div class="symWrap">
+                                <div class="sym">y</div>
+                            </div>
+                            <div><input type="number" id="dist_y" value="50.25" class="step2-input"></div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>Radius of Gyration [m]</label>
+                            <div class="symWrap">
+                                <div class="sym">k</div>
+                            </div>
+                            <div><input type="number" id="k_radius" readonly></div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>Eccentricity Coefficient</label>
+                            <div class="symWrap">
+                                <div class="sym">Ce</div>
+                            </div>
+                            <div><input type="number" id="ce" readonly></div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>
+                                Softness Coefficient<br>
+                                <span class="ref-link"
+                                    onclick="window.open('Cs.png', '_blank', 'width=800,height=600')">
+                                    Reference <span class="ref-icon">▶</span>
+                                </span>
+                            </label>
+                            <div class="symWrap">
+                                <div class="sym">Cs</div>
+                            </div>
+                            <div><input type="number" id="cs" value="1.0" class="step2-input"></div>
+                        </div>
+
+                        <div class="inputRow">
+                            <label>
+                                Berth Configuration Coeff.<br>
+                                <span class="ref-link"
+                                    onclick="window.open('Cc.png', '_blank', 'width=800,height=600')">
+                                    Reference <span class="ref-icon">▶</span>
+                                </span>
+                            </label>
+                            <div class="symWrap">
+                                <div class="sym">Cc</div>
+                            </div>
+                            <div><input type="number" id="cc" value="1.0" class="step2-input"></div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <div id="calcPrompt" class="calculator-prompt" style="display: none;">
+                            Calculation 버튼을 누르세요
+                        </div>
+                        <button class="btnHighlight" onclick="calculateFinal()">CALCULATION</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Reference Panel -->
+            <div id="rightPanelSticky">
+                <div class="result-box" id="finalResultBox">
+                    <h2>3. Final Results</h2>
+                    <div class="result-row">
+                        <span>Normal Berthing Energy (Ef):</span>
+                        <span class="highlight-text"><span id="ef_normal">0.00</span> ton·m</span>
+                    </div>
+                    <hr style="border-top: 1px solid rgba(61, 220, 151, .2); margin: 15px 0;">
+                    <div class="inputRow" style="border:none; padding:0; background:none;">
+                        <label style="color:var(--text); font-weight:bold;">Safety Factor</label>
+                        <div class="symWrap">
+                            <div class="sym">SF</div>
+                        </div>
+                        <div><input type="number" id="safety_factor" value="1.75" step="0.25"></div>
+                    </div>
+                    <div style="height:10px;"></div>
+                    <div class="result-row">
+                        <span class="final-energy">Abnormal Berthing Energy:</span>
+                        <span class="final-energy"><span id="ef_abnormal">0.00</span> ton·m</span>
+                    </div>
+                </div>
+
+                <div class="ref-panel">
+                    <h3>Reference Tables</h3>
+                    <table>
+                        <caption>[Table 1] Standard Dimensions</caption>
+                        <thead id="table1Header">
+                            <tr>
+                                <th>DWT</th>
+                                <th>Loa (m)</th>
+                                <th>Beam (m)</th>
+                                <th>Draft (m)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table1Body">
+                            <tr>
+                                <td>50,000</td>
+                                <td>216</td>
+                                <td>31.5</td>
+                                <td>12.4</td>
+                            </tr>
+                            <tr>
+                                <td>30,000</td>
+                                <td>182</td>
+                                <td>28.3</td>
+                                <td>10.5</td>
+                            </tr>
+                            <tr>
+                                <td>20,000</td>
+                                <td>177</td>
+                                <td>27.1</td>
+                                <td>9.9</td>
+                            </tr>
+                            <tr>
+                                <td>10,000</td>
+                                <td>132</td>
+                                <td>20.7</td>
+                                <td>8.1</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table>
+                        <caption>[Table 2] Safety Factor</caption>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Factor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td rowspan="2">Tanker/Bulk</td>
+                                <td>Largest</td>
+                                <td>1.25</td>
+                            </tr>
+                            <tr>
+                                <td>Smallest</td>
+                                <td>1.75</td>
+                            </tr>
+                            <tr>
+                                <td rowspan="2">Container</td>
+                                <td>Largest</td>
+                                <td>1.5</td>
+                            </tr>
+                            <tr>
+                                <td>Smallest</td>
+                                <td>2.0</td>
+                            </tr>
+                            <tr>
+                                <td>Cargo</td>
+                                <td>-</td>
+                                <td>1.75</td>
+                            </tr>
+                            <tr>
+                                <td>Ferry</td>
+                                <td>-</td>
+                                <td>2.0</td>
+                            </tr>
+                            <tr>
+                                <td>Tugs, Work Boats</td>
+                                <td>-</td>
+                                <td>2.0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Tab 1 -->
+
+    <!-- Tab 2: Fender Selection -->
+    <div id="tab-fender" class="tab-content">
+        <div class="card" style="margin-bottom: 20px;">
+            <h2>Fender Selection Criteria</h2>
+            <p style="margin-top: -5px; margin-bottom: 5px; font-size: 13px; color: #9fb0d0; line-height: 1.5;">
+                산정된 접안에너지(Berthing Energy)에 가능한 Fender Recommend<br>
+                Fender Type / Single, Twin 여부 / Temperature / Fender material 선택
+            </p>
+
+            <div class="flex-row-container" style="flex-wrap: wrap;"> <!-- Allow wrap for more rows -->
+                <!-- Reduced width for these to fit more -->
+                <div class="inputRow" style="min-width: 200px;">
+                    <label>Fender Type</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="fender_type" value="cell" checked> Cell Type</label>
+                        <label><input type="radio" name="fender_type" value="cone"> Super Cone Type</label>
+                    </div>
+                </div>
+
+                <div class="inputRow" style="min-width: 200px;">
+                    <label>Configuration</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="fender_config" value="single" checked> Single</label>
+                        <label><input type="radio" name="fender_config" value="twin"> Twin</label>
+                    </div>
+                </div>
+
+                <div class="inputRow" style="min-width: 250px;">
+                    <label>Target Energy (Abnormal)</label>
+                    <div style="display:flex; align-items:center; gap:10px; width: 100%;">
+                        <input type="number" id="target_energy_input" readonly style="width: 80px; text-align: right;"
+                            step="0.1">
+                        <span style="font-size:12px; color:var(--muted);">ton·m</span>
+                        <button id="btnDirectInput" onclick="toggleDirectInput()" style="
+                            background: rgba(255, 255, 255, 0.1);
+                            border: 1px solid var(--line);
+                            color: var(--muted);
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 11px;
+                            white-space: nowrap;
+                        ">직접입력</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Correction Factors Inputs -->
+            <div class="flex-row-container"
+                style="margin-top: 15px; border-top: 1px solid var(--line); padding-top: 15px; gap: 20px;">
+                <!-- Berthing Angle (Values from Calc) -->
+                <div class="inputRow" style="flex: 0 0 auto; width: 140px;">
+                    <label>Berthing Angle</label>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <input type="number" id="ref_angle" readonly
+                            style="background: rgba(255,255,255,0.05); color: var(--muted); width: 100%; text-align:center; font-weight:bold;">
+                        <span style="font-size:12px; color:var(--muted);">deg</span>
+                    </div>
+                </div>
+
+                <!-- Temperature -->
+                <div class="inputRow" style="flex: 1;">
+                    <label>Temperature [°C]</label>
+                    <select id="temp_select" style="width: 100%; text-align: center; font-weight: bold;">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <!-- Material -->
+                <div class="inputRow" style="flex: 2;">
+                    <label>Material</label>
+                    <select id="material_select" style="width: 100%;">
+                        <option value="blend">Blend of Natural/Synthetic Rubber</option>
+                        <option value="natural">100% Natural Rubber</option>
+                        <option value="synthetic">100% Synthetic Rubber</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Hidden ref for velocity -->
+            <input type="hidden" id="ref_velocity">
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btnSearch" onclick="searchFenders()">Search Available Fenders</button>
+            </div>
+        </div>
+
+        <div class="card" id="fenderResultCard" style="display: none;">
+            <h2>Recommended Fenders (E<sub>fender</sub> ≥ E<sub>abnormal</sub>)</h2>
+            <div style="overflow-x: auto;">
+                <table id="fenderResultTable">
+                    <thead>
+                        <tr>
+                            <th>Model / Size</th>
+                            <th>Grade</th>
+                            <th>Rated Energy<br>(ton·m)</th>
+                            <th>Reaction Force<br>(ton)</th>
+                            <th>Deflection</th>
+                            <!-- New Columns -->
+                            <th>AF</th>
+                            <th>TF</th>
+                            <th>VF</th>
+                            <th>Effective Energy<br>(ton·m)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fenderTableBody">
+                        <!-- JS populated -->
+                    </tbody>
+                </table>
+            </div>
+            <p style="color:var(--muted); font-size:12px; margin-top:10px;">
+                * Data based on representative Trelleborg Systems (Pages 8-11, 18-21).
+            </p>
+        </div>
+    </div>
+
+    <!-- Tab 3: Calculation of Fender Spacing -->
+    <div id="tab-spacing" class="tab-content">
+        <div class="card">
+            <div
+                style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); margin-bottom: 15px; padding-bottom: 8px;">
+                <h2 style="margin:0; border:none; padding:0;">Case Based on the Criteria</h2>
+                <span class="ref-link" onclick="window.open('Fender Pitch.png', '_blank', 'width=1000,height=800')">
+                    Reference <span class="ref-icon">▶</span>
+                </span>
+            </div>
+            <div
+                style="background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 10px; padding: 20px; margin-bottom: 25px; font-size: 15px; font-weight: bold; line-height: 2.0; color: #dbe7ff; box-shadow: inset 0 0 10px rgba(0,0,0,0.2);">
+                (1) Case 1 : Trelleburg Base<br>
+                (2) Case 2-1 : 항만 및 어항설계기준 Base (r=Lpp/4)<br>
+                (3) Case 2-2 : 항만 및 어항설계기준 Base (r 대신 Trelleburg RB 적용)
+            </div>
+
+            <div class="grid-2-col">
+                <div class="inputRow" style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 10px;">
+                    <label style="color: var(--muted);">r (Lpp / 4)</label>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <input type="number" id="spacing_r" readonly
+                            style="background:transparent; color:#fff; border:none; width: 100px; font-size:16px; font-weight:bold;">
+                        <span style="font-size:12px; color:var(--muted);">m</span>
+                    </div>
+                </div>
+                <div class="inputRow" style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 10px;">
+                    <label style="color: var(--muted);">RB (Bow Radius)</label>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <input type="number" id="spacing_rb" readonly
+                            style="background:transparent; color:#fff; border:none; width: 100px; font-size:16px; font-weight:bold;">
+                        <span style="font-size:12px; color:var(--muted);">m</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btnHighlight" onclick="calculateSpacing()"
+                    style="width: 100%; max-width: 400px; height: 50px; font-size: 16px;">Calculate Fender
+                    Spacing</button>
+            </div>
+        </div>
+
+        <div class="card" id="spacingResultCard" style="display: none; margin-top:20px;">
+            <h2>Fender Spacing Results</h2>
+            <div style="overflow-x: auto;">
+                <table id="spacingResultTable">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Model / Size</th>
+                            <th rowspan="2">Effective Energy<br>(ton·m)</th>
+                            <th colspan="3">Fender Spacing (m)</th>
+                        </tr>
+                        <tr>
+                            <th>Case 1</th>
+                            <th>Case 2-1</th>
+                            <th>Case 2-2</th>
+                        </tr>
+                    </thead>
+                    <tbody id="spacingTableBody">
+                        <!-- JS populated -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Tab Switching Logic ---
+        function switchTab(tabName) {
+            // Buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+            if (tabName === 'fender') {
+                // Sync Berthing Angle immediately on tab switch
+                const angleVal = document.getElementById('angle').value;
+                document.getElementById('ref_angle').value = angleVal;
+            }
+        }
+
+
+        // --- Calculation Logic ---
+        const step1Inputs = document.querySelectorAll('.step1-input');
+        const step2Inputs = document.querySelectorAll('.step2-input');
+        const step1Card = document.getElementById('step1Card');
+        const step2Card = document.getElementById('step2Card');
+        const calcPrompt = document.getElementById('calcPrompt');
+        const calcBtn = document.querySelector('.btnHighlight');
+
+        function checkFlow() {
+            calculateStep1();
+            let step1Valid = true;
+            step1Inputs.forEach(input => {
+                if (!input.value || input.value === "") step1Valid = false;
+            });
+
+            if (step1Valid) {
+                step2Card.classList.remove('inactive');
+                step2Card.classList.add('active');
+                step1Card.classList.remove('active');
+                calculateStep2();
+
+                const cmMethodInput = document.querySelector('input[name="cm_method"]:checked');
+                if (cmMethodInput) {
+                    calcPrompt.style.display = 'block';
+                    calcBtn.classList.add('btn-ready');
+                } else {
+                    calcPrompt.style.display = 'none';
+                    calcBtn.classList.remove('btn-ready');
+                }
+            } else {
+                step2Card.classList.add('inactive');
+                step2Card.classList.remove('active');
+                step1Card.classList.add('active');
+                calcPrompt.style.display = 'none';
+                calcBtn.classList.remove('btn-ready');
+            }
+        }
+
+        function calculateStep1() {
+            const dwt = parseFloat(document.getElementById('dwt').value) || 0;
+            const beam = parseFloat(document.getElementById('beam').value) || 0;
+            const draft = parseFloat(document.getElementById('draft').value) || 0;
+            const density = 1.025;
+            const angleDeg = parseFloat(document.getElementById('angle').value) || 0;
+
+            const complementRad = (90 - angleDeg) * (Math.PI / 180);
+            const angleCoeff = Math.pow(Math.cos(complementRad), 2);
+            document.getElementById('angle_coeff').value = angleCoeff.toFixed(4);
+
+            let lpp = 0;
+            if (dwt > 0) lpp = Math.pow(10, 0.964 + 0.285 * Math.log10(dwt));
+
+            let dt = 1.174 * dwt;
+            let cb = 0;
+            if (lpp > 0 && beam > 0 && draft > 0) cb = dt / (lpp * beam * draft * density);
+
+            document.getElementById('lpp').value = lpp.toFixed(2);
+            document.getElementById('dt').value = dt.toFixed(0);
+            document.getElementById('cb').value = cb.toFixed(3);
+
+            highlightTable1(dwt);
+        }
+
+        function highlightTable1(dwtValue) {
+            const tbody = document.getElementById('table1Body');
+            const rows = tbody.getElementsByTagName('tr');
+
+            // Remove previous highlight
+            for (let row of rows) {
+                row.classList.remove('highlight-row');
+            }
+
+            if (!dwtValue) return;
+
+            // Simple exact match for now as per user request (e.g., 50000)
+            // But handle cases with commas if necessary (Table.DWT is "50,000")
+            for (let row of rows) {
+                const dwtCell = row.cells[0].innerText.replace(/,/g, '');
+                if (parseFloat(dwtCell) === dwtValue) {
+                    row.classList.add('highlight-row');
+                    break;
+                }
+            }
+        }
+
+        function calculateStep2() {
+            const beam = parseFloat(document.getElementById('beam').value) || 0;
+            const draft = parseFloat(document.getElementById('draft').value) || 0;
+            const cb = parseFloat(document.getElementById('cb').value) || 0;
+            const lpp = parseFloat(document.getElementById('lpp').value) || 0;
+            const angleCoeff = parseFloat(document.getElementById('angle_coeff').value) || 0;
+
+            const cmMethodInput = document.querySelector('input[name="cm_method"]:checked');
+            let cm = 0;
+            if (cmMethodInput) {
+                const cmMethod = cmMethodInput.value;
+                if (cmMethod === 'vasco') {
+                    if (beam > 0) cm = 1 + (2 * draft) / beam;
+                } else {
+                    if (cb > 0 && beam > 0) cm = 1 + (Math.PI * draft) / (2 * cb * beam);
+                }
+            }
+            document.getElementById('cm').value = cm.toFixed(2);
+
+            let k = (0.19 * cb + 0.11) * lpp;
+            document.getElementById('k_radius').value = k.toFixed(2);
+
+            const x = parseFloat(document.getElementById('dist_x').value) || 0;
+            const y = parseFloat(document.getElementById('dist_y').value) || 0;
+            let r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+
+            let ce = 0;
+            if (k > 0 || r > 0) {
+                let numerator = Math.pow(k, 2) + (Math.pow(r, 2) * angleCoeff);
+                let denominator = Math.pow(k, 2) + Math.pow(r, 2);
+                ce = numerator / denominator;
+            }
+            document.getElementById('ce').value = ce.toFixed(3);
+        }
+
+        function calculateFinal() {
+            const dt = parseFloat(document.getElementById('dt').value) || 0;
+            const velocity = parseFloat(document.getElementById('velocity').value) || 0;
+            const ce = parseFloat(document.getElementById('ce').value) || 0;
+            const cm = parseFloat(document.getElementById('cm').value) || 0;
+            const cs = parseFloat(document.getElementById('cs').value) || 1;
+            const cc = parseFloat(document.getElementById('cc').value) || 1;
+
+            let energyNormal = 0.5 * dt * Math.pow(velocity, 2) * ce * cm * cs * cc;
+            document.getElementById('ef_normal').innerText = energyNormal.toFixed(1);
+
+            const safetyFactor = parseFloat(document.getElementById('safety_factor').value) || 0;
+            let energyAbnormal = energyNormal * safetyFactor;
+            document.getElementById('ef_abnormal').innerText = energyAbnormal.toFixed(1);
+
+            // Highlight Result Box
+            const resultBox = document.getElementById('finalResultBox');
+            resultBox.classList.remove('highlighted');
+            void resultBox.offsetWidth; // Trigger reflow
+            resultBox.classList.add('highlighted');
+        }
+
+        step1Inputs.forEach(input => { input.addEventListener('input', checkFlow); input.addEventListener('change', checkFlow); });
+        step2Inputs.forEach(input => { input.addEventListener('input', checkFlow); input.addEventListener('change', checkFlow); });
+        window.addEventListener('DOMContentLoaded', checkFlow);
+
+
+        // --- Fender Data & Logic ---
+
+        let lastFilteredFenders = []; // To share data with spacing calculations
+
+        // Direct Input State
+        let isDirectInput = false;
+
+        function toggleDirectInput() {
+            const input = document.getElementById('target_energy_input');
+            const btn = document.getElementById('btnDirectInput');
+
+            isDirectInput = !isDirectInput;
+
+            if (isDirectInput) {
+                input.removeAttribute('readonly');
+                input.style.background = 'rgba(0, 0, 0, 0.5)';
+                input.style.borderColor = 'var(--active-border)';
+                input.focus();
+                btn.innerText = '자동계산';
+                btn.style.color = '#4cd137';
+                btn.style.borderColor = '#4cd137';
+            } else {
+                input.setAttribute('readonly', true);
+                input.style.background = ''; // Revert to CSS default (readonly style)
+                input.style.borderColor = '';
+                btn.innerText = '직접입력';
+                btn.style.color = '';
+                btn.style.borderColor = '';
+
+                // Revert value to calculated but don't auto-search yet
+                // updateFenderTable();
+
+                // Just update the input value display if switching back to auto
+                if (!isDirectInput) {
+                    const abnormalEnergyStr = document.getElementById('ef_abnormal').innerText;
+                    const targetEnergy = parseFloat(abnormalEnergyStr) || 0;
+                    input.value = targetEnergy.toFixed(1);
+                }
+            }
+        }
+
+        // Listen for manual input - remove auto update
+        // document.getElementById('target_energy_input').addEventListener('input', function () {
+        //     if (isDirectInput) updateFenderTable();
+        // });
+
+        // Initialize Temp Select
+        const tempSelect = document.getElementById('temp_select');
+        for (let t = 50; t >= -30; t -= 10) {
+            const opt = document.createElement('option');
+            let label = t > 0 ? `+${t}` : `${t}`;
+            opt.value = t;
+            opt.innerText = label;
+            if (t === 20) opt.selected = true; // Default 20
+            tempSelect.appendChild(opt);
+        }
+
+        // --- Correction Factors Data (Placeholder / Representative) ---
+        // USER: Please update these tables with exact values from PDF pages 12, 13, 22, 23
+        const correctionFactors = {
+            cell: {
+                // Angle Factor (Page 22) - Example: Decreases with angle
+                AF: { 0: 1.000, 3: 0.985, 5: 0.966, 10: 0.914, 15: 0.852, 20: 0.785 },
+                // Temperature Factor (Page 23) - Example: Cold=Stiff(>1), Hot=Soft(<1)
+                TF: {
+                    blend: { 50: 0.88, 40: 0.92, 30: 0.96, 20: 1.0, 10: 1.05, 0: 1.11, "-10": 1.18, "-20": 1.25, "-30": 1.35 },
+                    natural: { 50: 0.90, 40: 0.93, 30: 0.97, 20: 1.0, 10: 1.04, 0: 1.08, "-10": 1.14, "-20": 1.20, "-30": 1.28 },
+                    synthetic: { 50: 0.85, 40: 0.90, 30: 0.95, 20: 1.0, 10: 1.06, 0: 1.13, "-10": 1.22, "-20": 1.32, "-30": 1.45 }
+                },
+                // Velocity Factor (Page 23) - Index = Compression Time. Usually increases with velocity (so low time -> high VF? or low VF? Trelleborg usually VF >= 1.0 at high speed)
+                // Let's assume standard behavior: High Velocity (Low Time) -> Higher Reaction, Energy Factor ~ 1.0 or slightly different?
+                // User said "Effective Energy = Rated * VF...". Usually velocity factor is for Reaction. 
+                // For Energy, factors effectively act as deration or enhancement.
+                // We will use standard Trelleborg VF table structure where index is Time (sec).
+                // Example data:
+                VF: {
+                    // Time (sec): Factor (Example based on typical trends: Fast=HighVF, Slow=LowVF)
+                    0.1: 1.15, 0.5: 1.08, 1: 1.05, 2: 1.03, 3: 1.02, 4: 1.01, 5: 1.005, 10: 1.00
+                }
+            },
+            cone: {
+                // Page 12
+                AF: { 0: 1.0, 5: 0.98, 10: 0.96, 15: 0.94, 20: 0.92 },
+                // Page 13
+                TF: {
+                    blend: { 50: 0.90, 20: 1.0, "-30": 1.30 }, // Simplified
+                    natural: { 50: 0.92, 20: 1.0, "-30": 1.25 },
+                    synthetic: { 50: 0.88, 20: 1.0, "-30": 1.35 }
+                },
+                // Page 13
+                VF: {
+                    0.1: 1.12, 0.5: 1.06, 1: 1.04, 3: 1.02, 5: 1.01, 10: 1.00
+                }
+            }
+        };
+
+        // Representative Data Structure
+        const fenderDB = {
+            cell: [
+                // 1000H
+                { type: "Cell", size: "1000H", grade: "E1.0", energy: 177, reaction: 457, def: "52.5%" },
+                { type: "Cell", size: "1000H", grade: "E1.2", energy: 216, reaction: 549, def: "52.5%" },
+                { type: "Cell", size: "1000H", grade: "E1.5", energy: 256, reaction: 640, def: "52.5%" },
+                // 1150H
+                { type: "Cell", size: "1150H", grade: "E1.0", energy: 268, reaction: 605, def: "52.5%" },
+                { type: "Cell", size: "1150H", grade: "E1.2", energy: 326, reaction: 726, def: "52.5%" },
+                { type: "Cell", size: "1150H", grade: "E1.5", energy: 387, reaction: 847, def: "52.5%" },
+                // 1250H (User Example)
+                { type: "Cell", size: "1250H", grade: "E1.0", energy: 279, reaction: 588, def: "52.5%" },
+                { type: "Cell", size: "1250H", grade: "E1.2", energy: 336.6, reaction: 1250, def: "52.5%" }, // User provided
+                { type: "Cell", size: "1250H", grade: "E1.5", energy: 410, reaction: 890, def: "52.5%" },
+                // 1450H
+                { type: "Cell", size: "1450H", grade: "E1.0", energy: 540, reaction: 960, def: "52.5%" },
+                { type: "Cell", size: "1450H", grade: "E1.5", energy: 680, reaction: 1150, def: "52.5%" },
+                // 1700H
+                { type: "Cell", size: "1700H", grade: "E1.0", energy: 870, reaction: 1320, def: "52.5%" },
+                { type: "Cell", size: "1700H", grade: "E1.5", energy: 1100, reaction: 1580, def: "52.5%" },
+            ],
+            cone: [
+                // SCN 1000
+                { type: "Cone", size: "SCN 1000", grade: "E1.0", energy: 310, reaction: 676, def: "72%" },
+                { type: "Cone", size: "SCN 1000", grade: "E1.2", energy: 375, reaction: 811, def: "72%" },
+                // SCN 1100
+                { type: "Cone", size: "SCN 1100", grade: "E1.0", energy: 412, reaction: 818, def: "72%" },
+                { type: "Cone", size: "SCN 1100", grade: "E1.2", energy: 499, reaction: 981, def: "72%" },
+                // SCN 1200
+                { type: "Cone", size: "SCN 1200", grade: "E1.0", energy: 535, reaction: 974, def: "72%" },
+                { type: "Cone", size: "SCN 1200", grade: "E1.2", energy: 647, reaction: 1168, def: "72%" },
+            ]
+        };
+
+        function searchFenders() {
+            // Sync Berthing Angle for display
+            const angleVal = document.getElementById('angle').value;
+            document.getElementById('ref_angle').value = angleVal;
+
+            document.getElementById('fenderResultCard').style.display = 'block';
+            updateFenderTable();
+        }
+
+        // Helper to Interpolate or Get Nearest
+        function getFactor(map, key) {
+            // Find closest key
+            const keys = Object.keys(map).map(parseFloat).sort((a, b) => a - b);
+            // Simple nearest for now (User can improve to linear interpolation if needed)
+            let closest = keys[0];
+            let minDiff = Math.abs(key - closest);
+
+            for (let k of keys) {
+                let diff = Math.abs(key - k);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closest = k;
+                }
+            }
+            return map[closest] || 1.0;
+        }
+
+        function updateFenderTable() {
+            // 1. Get Inputs
+            const abnormalEnergyStr = document.getElementById('ef_abnormal').innerText;
+            const calcEnergy = parseFloat(abnormalEnergyStr) || 0;
+            const inputEl = document.getElementById('target_energy_input');
+
+            let targetEnergy = 0;
+            if (isDirectInput) {
+                targetEnergy = parseFloat(inputEl.value) || 0;
+            } else {
+                targetEnergy = calcEnergy;
+                inputEl.value = targetEnergy.toFixed(1);
+            }
+
+            // Correction Factor Inputs
+            const temp = parseInt(document.getElementById('temp_select').value) || 20;
+            const material = document.getElementById('material_select').value || 'blend';
+            // Panel Height REMOVED from manual input -> Derived from Model Size
+            const refAngle = parseFloat(document.getElementById('angle').value) || 0;
+            const refVelMs = parseFloat(document.getElementById('velocity').value) || 0.15; // default 15cm/s
+            const refVelMms = refVelMs * 1000;
+
+            // 2. Get Selected Type & Config
+            const type = document.querySelector('input[name="fender_type"]:checked').value;
+            const config = document.querySelector('input[name="fender_config"]:checked').value; // single or twin
+            const data = fenderDB[type] || [];
+
+            // Factors DB
+            const factors = correctionFactors[type] || correctionFactors['cell']; // fallback
+
+            // 3. Filter & Map Data
+            let processedData = data.map(item => {
+                let multiplier = (config === 'twin') ? 2 : 1;
+
+                // Base values
+                let ratedE = item.energy * multiplier;
+                let reaction = item.reaction * multiplier;
+                let defStr = item.def.replace('%', '');
+                let defPct = parseFloat(defStr) || 52.5;
+                let defRatio = defPct / 100;
+
+                // Get Panel Height (H) from Size String (e.g., "1000H" -> 1000, "SCN 1000" -> 1000)
+                let sizeMatch = item.size.match(/(\d+)/);
+                let panelH = sizeMatch ? parseFloat(sizeMatch[0]) : 1000;
+
+                // 1. AF
+                // Use refAngle
+                let AF = getFactor(factors.AF, refAngle);
+
+                // 2. TF
+                // Use temp & material
+                let TF_Map = factors.TF[material] || factors.TF['blend'];
+                let TF = getFactor(TF_Map, temp);
+
+                // 3. VF Calculation
+                // Formula: Index = (TargetE / RatedE * DefRatio * PanelH) / (0.74 * V_mms)
+                // Note: TargetE should be the Energy APPLIED to the fender. 
+
+                let energyRatio = (ratedE > 0) ? (targetEnergy / ratedE) : 1;
+
+                let numerator = energyRatio * defRatio * panelH;
+                let denominator = 0.74 * refVelMms;
+                let compressionTime = (denominator > 0) ? (numerator / denominator) : 1;
+
+                let VF_Map = factors.VF;
+                let VF = getFactor(VF_Map, compressionTime);
+
+                // Effective Energy
+                let effEnergy = ratedE * VF * AF * TF * 0.9;
+
+                return {
+                    ...item,
+                    ratedE_Disp: ratedE,
+                    reaction_Disp: reaction,
+                    AF: AF,
+                    TF: TF,
+                    VF: VF,
+                    effEnergy: effEnergy
+                };
+            });
+
+            // Filter: Effective Energy >= Target Energy
+            const filtered = processedData.filter(item => item.effEnergy >= targetEnergy);
+            lastFilteredFenders = filtered;
+
+            // 4. Sort (Optional - by Effective Energy)
+            filtered.sort((a, b) => a.effEnergy - b.effEnergy);
+
+            // 5. Render Table
+            const tbody = document.getElementById('fenderTableBody');
+            tbody.innerHTML = ''; // Clear
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="padding:20px; color:var(--muted);">No matching fenders found (Check Correction Factors).</td></tr>';
+                return;
+            }
+
+            filtered.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.size} <span style='font-size:10px; color:var(--muted);'>(${config})</span></td>
+                    <td>${item.grade}</td>
+                    <td style="color:#dbe7ff;">${item.ratedE_Disp.toFixed(1)}</td>
+                    <td>${item.reaction_Disp.toFixed(1)}</td>
+                    <td>${item.def}</td>
+                    <!-- Factors -->
+                    <td style="color:#9fb0d0;">${item.AF.toFixed(3)}</td>
+                    <td style="color:#9fb0d0;">${item.TF.toFixed(3)}</td>
+                    <td style="color:#9fb0d0;">${item.VF.toFixed(3)}</td>
+                    <td style="color:#4cd137; font-weight:bold;">${item.effEnergy.toFixed(1)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function calculateSpacing() {
+            // 1. Get Base Inputs
+            const lpp = parseFloat(document.getElementById('lpp').value) || 0;
+            const beam = parseFloat(document.getElementById('beam').value) || 0;
+            const loa = parseFloat(document.getElementById('loa').value) || 0;
+            const targetEnergy = parseFloat(document.getElementById('target_energy_input').value) || 0;
+
+            if (loa === 0 || beam === 0) {
+                alert("Please input LOA and Beam in 'Calculation' tab first.");
+                return;
+            }
+
+            // 2. Base Dimensions
+            const r = lpp / 4;
+            // RB = ((Beam/2) + (LOA^2 / (8 * Beam))) / 2
+            const RB = ((beam / 2) + (Math.pow(loa, 2) / (8 * beam))) / 2;
+
+            document.getElementById('spacing_r').value = r.toFixed(2);
+            document.getElementById('spacing_rb').value = RB.toFixed(2);
+
+            // 3. Populate Results Table
+            const tbody = document.getElementById('spacingTableBody');
+            tbody.innerHTML = '';
+
+            if (lastFilteredFenders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="padding:20px; color:var(--muted);">No recommended fenders found. Run fender search first.</td></tr>';
+            } else {
+                lastFilteredFenders.forEach(item => {
+                    // h calculation logic
+                    // Size number (e.g. 1000)
+                    let sizeMatch = item.size.match(/(\d+)/);
+                    let sizeNum = sizeMatch ? parseFloat(sizeMatch[0]) : 1000;
+                    let sizeM = sizeNum / 1000;
+
+                    // Ratio (1 - (Target / Eff) * 0.525)
+                    let ratioVal = 1 - (targetEnergy / item.effEnergy) * 0.525;
+                    // Tmp = sizeM * ratioVal
+                    let tmp = sizeM * ratioVal;
+                    // h = 1 - tmp + 0.41
+                    let h = 1 - tmp + 0.41;
+
+                    // Formulas
+                    // Case 1: 2*sqrt(RB^2-(RB-h+0.3)^2) -> Using squared for consistency
+                    let case1 = 2 * Math.sqrt(Math.pow(RB, 2) - Math.pow(RB - h + 0.3, 2));
+                    // Case 2-1: 2*sqrt(2*h*r-h^2)
+                    let case2_1 = 2 * Math.sqrt(2 * h * r - Math.pow(h, 2));
+                    // Case 2-2: 2*sqrt(2*h*RB-h^2)
+                    let case2_2 = 2 * Math.sqrt(2 * h * RB - Math.pow(h, 2));
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.size}</td>
+                        <td style="color:#dbe7ff;">${item.effEnergy.toFixed(1)}</td>
+                        <td style="color:#4cd137;">${isNaN(case1) ? '-' : case1.toFixed(2)}</td>
+                        <td style="color:#4cd137;">${isNaN(case2_1) ? '-' : case2_1.toFixed(2)}</td>
+                        <td style="color:#4cd137;">${isNaN(case2_2) ? '-' : case2_2.toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('spacingResultCard').style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>
