@@ -94,7 +94,7 @@
         /* --- Layout Containers --- */
         .tab-content {
             display: none;
-            max-width: 1400px;
+            max-width: 1700px;
             margin: 0 auto;
             padding: 20px;
             animation: fadeInPage 0.4s ease;
@@ -119,9 +119,33 @@
         /* --- Existing Layout for Tab 1 --- */
         .wrap-calc {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 2.2fr 1fr;
             gap: 20px;
             align-items: start;
+            transition: grid-template-columns 0.4s ease;
+        }
+
+        .wrap-calc.shrinking {
+            grid-template-columns: 1fr 2fr;
+        }
+
+        /* Tab 3 specific dynamic layout */
+        #tab-spacing .wrap-calc {
+            grid-template-columns: 1fr;
+            /* Full width by default */
+        }
+
+        #tab-spacing .wrap-calc.shrinking {
+            grid-template-columns: 1.2fr 1fr;
+            /* Shrink to show reference */
+        }
+
+        #tab-spacing .right-panel-spacing {
+            display: none;
+        }
+
+        #tab-spacing .wrap-calc.shrinking .right-panel-spacing {
+            display: block;
         }
 
         .left-panel {
@@ -506,6 +530,105 @@
             font-weight: bold;
         }
 
+        /* Reference Preview Card */
+        .ref-preview-card {
+            background: var(--panel);
+            border: 1px solid var(--active-border);
+            border-radius: 14px;
+            padding: 10px;
+            box-shadow: var(--highlight-glow);
+            text-align: center;
+            overflow: hidden;
+            display: none;
+            /* Hidden until a reference is clicked */
+            animation: slideInRight 0.3s ease;
+        }
+
+        .ref-preview-card h3 {
+            margin: 0 0 10px;
+            font-size: 14px;
+            color: #3ddc97;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ref-preview-card img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Modal / Enlarge Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            align-items: center;
+            justify-content: center;
+            cursor: zoom-out;
+        }
+
+        .modal-content {
+            max-width: 95%;
+            max-height: 95%;
+            border: 1px solid var(--active-border);
+            border-radius: 12px;
+            box-shadow: 0 0 100px rgba(61, 220, 151, 0.2);
+            object-fit: contain;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 25px;
+            right: 35px;
+            color: var(--muted);
+            font-size: 32px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .btn-enlarge {
+            background: rgba(61, 220, 151, 0.15);
+            border: 1px solid var(--active-border);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-enlarge:hover {
+            background: var(--active-border);
+            color: #0b1020;
+        }
+
         @media (max-width: 1000px) {
             .wrap-calc {
                 grid-template-columns: 1fr;
@@ -640,8 +763,7 @@
                         <div class="inputRow" style="background: rgba(255,255,255,0.03);">
                             <label>
                                 Block Coefficient<br>
-                                <span class="ref-link"
-                                    onclick="window.open('Cb.png', '_blank', 'width=800,height=600')">
+                                <span class="ref-link" onclick="showReference('Cb.png', 'Block Coefficient')">
                                     Reference <span class="ref-icon">▶</span>
                                 </span>
                             </label>
@@ -686,8 +808,7 @@
                         <div class="inputRow">
                             <label>
                                 Virtual Mass Coefficient<br>
-                                <span class="ref-link"
-                                    onclick="window.open('Cm.png', '_blank', 'width=800,height=600')">
+                                <span class="ref-link" onclick="showReference('Cm.png', 'Virtual Mass Coefficient')">
                                     Reference <span class="ref-icon">▶</span>
                                 </span>
                             </label>
@@ -734,8 +855,7 @@
                         <div class="inputRow">
                             <label>
                                 Softness Coefficient<br>
-                                <span class="ref-link"
-                                    onclick="window.open('Cs.png', '_blank', 'width=800,height=600')">
+                                <span class="ref-link" onclick="showReference('Cs.png', 'Softness Coefficient')">
                                     Reference <span class="ref-icon">▶</span>
                                 </span>
                             </label>
@@ -748,8 +868,7 @@
                         <div class="inputRow">
                             <label>
                                 Berth Configuration Coeff.<br>
-                                <span class="ref-link"
-                                    onclick="window.open('Cc.png', '_blank', 'width=800,height=600')">
+                                <span class="ref-link" onclick="showReference('Cc.png', 'Berth Configuration Coeff.')">
                                     Reference <span class="ref-icon">▶</span>
                                 </span>
                             </label>
@@ -790,6 +909,21 @@
                         <span class="final-energy">Abnormal Berthing Energy:</span>
                         <span class="final-energy"><span id="ef_abnormal">0.00</span> ton·m</span>
                     </div>
+                </div>
+
+                <!-- Reference Preview -->
+                <div class="ref-preview-card" id="refPreviewCard">
+                    <h3>
+                        <span id="refPreviewTitle">Reference Title</span>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <button class="btn-enlarge" onclick="enlargeReference()">
+                                <span>🔍</span> 확대
+                            </button>
+                            <span style="font-size: 10px; cursor: pointer; color: var(--muted);"
+                                onclick="closeReference()">[Close]</span>
+                        </div>
+                    </h3>
+                    <img id="refPreviewImage" src="" alt="Reference">
                 </div>
 
                 <div class="ref-panel">
@@ -1001,67 +1135,78 @@
 
     <!-- Tab 3: Calculation of Fender Spacing -->
     <div id="tab-spacing" class="tab-content">
-        <div class="card">
-            <div
-                style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); margin-bottom: 15px; padding-bottom: 8px;">
-                <h2 style="margin:0; border:none; padding:0;">Case Based on the Criteria</h2>
-                <span class="ref-link" onclick="window.open('Fender Pitch.png', '_blank', 'width=1000,height=800')">
-                    Reference <span class="ref-icon">▶</span>
-                </span>
-            </div>
-            <div
-                style="background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 10px; padding: 20px; margin-bottom: 25px; font-size: 15px; font-weight: bold; line-height: 2.0; color: #dbe7ff; box-shadow: inset 0 0 10px rgba(0,0,0,0.2);">
-                (1) Case 1 : Trelleburg Base<br>
-                (2) Case 2-1 : 항만 및 어항설계기준 Base (r=Lpp/4)<br>
-                (3) Case 2-2 : 항만 및 어항설계기준 Base (r 대신 Trelleburg RB 적용)
-            </div>
+        <div class="wrap-calc"> <!-- Consistency with Tab 1 layout -->
+            <div class="left-panel">
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); margin-bottom: 15px; padding-bottom: 8px;">
+                        <h2 style="margin:0; border:none; padding:0;">Case Based on the Criteria</h2>
+                        <span class="ref-link" onclick="showReference('Fender Pitch.png', 'Fender Pitch Criteria')">
+                            Reference <span class="ref-icon">▶</span>
+                        </span>
+                    </div>
+                    <div
+                        style="background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 10px; padding: 20px; margin-bottom: 25px; font-size: 15px; font-weight: bold; line-height: 2.0; color: #dbe7ff; box-shadow: inset 0 0 10px rgba(0,0,0,0.2);">
+                        (1) Case 1 : Trelleburg Base<br>
+                        (2) Case 2-1 : 항만 및 어항설계기준 Base (r=Lpp/4)<br>
+                        (3) Case 2-2 : 항만 및 어항설계기준 Base (r 대신 Trelleburg RB 적용)
+                    </div>
 
-            <div class="grid-2-col">
-                <div class="inputRow" style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 10px;">
-                    <label style="color: var(--muted);">r (Lpp / 4)</label>
-                    <div style="display:flex; align-items:center; gap:5px;">
-                        <input type="number" id="spacing_r" readonly
-                            style="background:transparent; color:#fff; border:none; width: 100px; font-size:16px; font-weight:bold;">
-                        <span style="font-size:12px; color:var(--muted);">m</span>
+                    <div class="grid-2-col">
+                        <div class="inputRow"
+                            style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 10px;">
+                            <label style="color: var(--muted);">r (Lpp / 4)</label>
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <input type="number" id="spacing_r" readonly
+                                    style="background:transparent; color:#fff; border:none; width: 100px; font-size:16px; font-weight:bold;">
+                                <span style="font-size:12px; color:var(--muted);">m</span>
+                            </div>
+                        </div>
+                        <div class="inputRow"
+                            style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 10px;">
+                            <label style="color: var(--muted);">RB (Bow Radius)</label>
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <input type="number" id="spacing_rb" readonly
+                                    style="background:transparent; color:#fff; border:none; width: 100px; font-size:16px; font-weight:bold;">
+                                <span style="font-size:12px; color:var(--muted);">m</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btnHighlight" onclick="calculateSpacing()"
+                            style="width: 100%; max-width: 400px; height: 50px; font-size: 16px;">Calculate Fender
+                            Spacing</button>
                     </div>
                 </div>
-                <div class="inputRow" style="background: rgba(255,255,255,0.05); border-radius: 6px; padding: 10px;">
-                    <label style="color: var(--muted);">RB (Bow Radius)</label>
-                    <div style="display:flex; align-items:center; gap:5px;">
-                        <input type="number" id="spacing_rb" readonly
-                            style="background:transparent; color:#fff; border:none; width: 100px; font-size:16px; font-weight:bold;">
-                        <span style="font-size:12px; color:var(--muted);">m</span>
+
+                <div class="card" id="spacingResultCard" style="display: none; margin-top:20px;">
+                    <h2>Fender Spacing Results</h2>
+                    <div style="overflow-x: auto;">
+                        <table id="spacingResultTable">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Model / Size</th>
+                                    <th rowspan="2">Effective Energy<br>(ton·m)</th>
+                                    <th colspan="3">Fender Spacing (m)</th>
+                                </tr>
+                                <tr>
+                                    <th>Case 1</th>
+                                    <th>Case 2-1</th>
+                                    <th>Case 2-2</th>
+                                </tr>
+                            </thead>
+                            <tbody id="spacingTableBody">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <div style="text-align: center; margin-top: 30px;">
-                <button class="btnHighlight" onclick="calculateSpacing()"
-                    style="width: 100%; max-width: 400px; height: 50px; font-size: 16px;">Calculate Fender
-                    Spacing</button>
-            </div>
-        </div>
-
-        <div class="card" id="spacingResultCard" style="display: none; margin-top:20px;">
-            <h2>Fender Spacing Results</h2>
-            <div style="overflow-x: auto;">
-                <table id="spacingResultTable">
-                    <thead>
-                        <tr>
-                            <th rowspan="2">Model / Size</th>
-                            <th rowspan="2">Effective Energy<br>(ton·m)</th>
-                            <th colspan="3">Fender Spacing (m)</th>
-                        </tr>
-                        <tr>
-                            <th>Case 1</th>
-                            <th>Case 2-1</th>
-                            <th>Case 2-2</th>
-                        </tr>
-                    </thead>
-                    <tbody id="spacingTableBody">
-                        <!-- JS populated -->
-                    </tbody>
-                </table>
+            <!-- Share the same right panel structure for reference display -->
+            <div id="rightPanelSpacing" class="right-panel-spacing">
+                <!-- Reference card will be moved here by JS -->
             </div>
         </div>
     </div>
@@ -1083,6 +1228,57 @@
                 const angleVal = document.getElementById('angle').value;
                 document.getElementById('ref_angle').value = angleVal;
             }
+
+            // Hide reference preview and reset layout on tab switch
+            const preview = document.getElementById('refPreviewCard');
+            if (preview) {
+                preview.style.display = 'none';
+                document.querySelectorAll('.wrap-calc').forEach(wrap => wrap.classList.remove('shrinking'));
+            }
+        }
+
+        // --- Reference Display Logic ---
+        function showReference(imgSrc, title) {
+            const card = document.getElementById('refPreviewCard');
+            const img = document.getElementById('refPreviewImage');
+            const titleEl = document.getElementById('refPreviewTitle');
+
+            img.src = imgSrc;
+            titleEl.innerText = title;
+            card.style.display = 'block';
+
+            const activeTab = document.querySelector('.tab-content.active');
+            const wrap = activeTab.querySelector('.wrap-calc');
+
+            if (activeTab.id === 'tab-spacing') {
+                const rightPanel = document.getElementById('rightPanelSpacing');
+                rightPanel.appendChild(card);
+            } else {
+                const rightPanel = document.getElementById('rightPanelSticky');
+                rightPanel.appendChild(card);
+            }
+
+            // Shrink the current tab's wrap-calc
+            if (wrap) wrap.classList.add('shrinking');
+
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function closeReference() {
+            document.getElementById('refPreviewCard').style.display = 'none';
+            document.querySelectorAll('.wrap-calc').forEach(wrap => wrap.classList.remove('shrinking'));
+        }
+
+        function enlargeReference() {
+            const imgSrc = document.getElementById('refPreviewImage').src;
+            const modal = document.getElementById('refModal');
+            const modalImg = document.getElementById('modalImage');
+            modalImg.src = imgSrc;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('refModal').style.display = 'none';
         }
 
 
@@ -1570,6 +1766,12 @@
             document.getElementById('spacingResultCard').style.display = 'block';
         }
     </script>
+
+    <!-- Enlarge Modal -->
+    <div id="refModal" class="modal" onclick="closeModal()">
+        <span class="modal-close">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
 </body>
 
 </html>
